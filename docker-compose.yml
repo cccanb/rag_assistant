@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    container_name: django_rag
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - faiss_data:/app/rag_assistant/faiss_index
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - rag_assistant_network
+
+networks:
+  rag_assistant_network:
+    driver: bridge
+
+
+volumes:
+  faiss_data: {}
