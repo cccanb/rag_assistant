@@ -1,0 +1,7 @@
+FAISS_INDEX_FILE = "index.faiss"
+FAISS_JSON_FILE = "texts.json"
+INDEX_DIR = "/app/rag_assistant/faiss_index"
+DOCS_DIR = "/app/docs"
+EMBEDDING_MODEL = "text-embedding-3-small"
+GPT_MODEL = "gpt-4.1-mini"
+# GPT_MODEL = "gpt-4.1-nano"
