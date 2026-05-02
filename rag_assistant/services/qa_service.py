@@ -1,9 +1,19 @@
+from functools import lru_cache
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pathlib import Path
 from ..constants.constants import INDEX_DIR, EMBEDDING_MODEL, GPT_MODEL
+
+
+@lru_cache(maxsize=1)
+def _load_vectorstore() -> FAISS:
+    return FAISS.load_local(
+        folder_path=str(Path(INDEX_DIR)),
+        embeddings=OpenAIEmbeddings(model=EMBEDDING_MODEL),
+        allow_dangerous_deserialization=True,
+    )
 
 
 class QAService:
@@ -26,10 +36,7 @@ class QAService:
     )
 
     def __init__(self):
-        self.vectorstore = FAISS.load_local(
-            folder_path=str(Path(INDEX_DIR)),
-            embeddings=OpenAIEmbeddings(model=EMBEDDING_MODEL)
-        )
+        self.vectorstore = _load_vectorstore()
 
     def get_answer(self, query: str) -> str:
         retriever = self.vectorstore.as_retriever(search_kwargs={"k": self.NUMBER_OF_DOCS})
