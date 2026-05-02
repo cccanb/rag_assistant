@@ -1,0 +1,39 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django_rag_prod
+    command: >
+      gunicorn rag_assistant.wsgi:application
+      --bind 0.0.0.0:8000
+      --workers 3
+      --worker-class sync
+      --timeout 120
+      --access-logfile -
+      --error-logfile -
+      --log-level info
+    volumes:
+      - faiss_data:/app/rag_assistant/faiss_index
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - rag_assistant_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+        reservations:
+          cpus: "0.25"
+          memory: 256m
+
+networks:
+  rag_assistant_network:
+    driver: bridge
+
+volumes:
+  faiss_data: {}
