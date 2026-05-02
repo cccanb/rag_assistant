@@ -1,10 +1,15 @@
+import logging
 from functools import lru_cache
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from openai import APIError, RateLimitError
 from pathlib import Path
+
 from ..constants.constants import INDEX_DIR, EMBEDDING_MODEL, GPT_MODEL
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
@@ -48,5 +53,15 @@ class QAService:
             chain_type_kwargs={"prompt": self.PROMPT_TEMPLATE}
         )
 
-        response = qa.invoke({"query": query})
-        return response.get("result", response)
+        try:
+            response = qa.invoke({"query": query})
+            return response.get("result", response)
+        except RateLimitError as e:
+            logger.warning("OpenAI rate limit exceeded: %s", e)
+            raise
+        except APIError as e:
+            logger.error("OpenAI API error: %s", e)
+            raise
+        except Exception as e:
+            logger.exception("Unexpected error in QAService.get_answer: %s", e)
+            raise
