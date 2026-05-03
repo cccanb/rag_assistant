@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from .serializers import AssistantRequestSerializer
 from .services.qa_service import QAService
 
 logger = logging.getLogger(__name__)
@@ -12,10 +13,11 @@ logger = logging.getLogger(__name__)
 
 class AssistantAPIView(APIView):
     def post(self, request, *args, **kwargs):
-        query = request.data.get("query")
+        serializer = AssistantRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if not query:
-            return Response({"error": "query is required"}, status=status.HTTP_400_BAD_REQUEST)
+        query = serializer.validated_data["query"]
 
         try:
             answer = QAService().get_answer(query)
